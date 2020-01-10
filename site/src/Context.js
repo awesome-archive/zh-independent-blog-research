@@ -1,21 +1,39 @@
 
 import { createContext } from "react";
-import React, { useState, useContext, useReducer } from "react";
+import React, { useReducer } from "react";
 import data from "./data.json"
 import graph from "./graph.json"
+
+let domainDataMap = {}
+let blogSearcher = {}
+data.forEach(item => {
+    domainDataMap[item.domain] = item
+    blogSearcher[item.domain] = JSON.stringify(item)
+})
 
 
 const value = {
     domain: undefined,
     depath: 1,
+    q: undefined,
+    blogList: []
 }
 
-let domainDataMap = {}
-data.map(item => {
-    let site = new URL(item.url)
-    domainDataMap[site.hostname] = item
-})
 
+const queryBlog = (q) => {
+    let searchRes = Object.entries(blogSearcher).filter(item => {
+        let [key, value] = item
+        let qRegExp = new RegExp(q, 'i')
+        // 全局正则搜索
+        return value.search(qRegExp) > -1
+    }).map(item => {
+        let [key, value] = item
+        return domainDataMap[key]
+    })
+    let r = searchRes.slice(0, 10)
+    console.log(r)
+    return r
+}
 
 const computeGraph = (domain, depth = 2) => {
 
@@ -40,14 +58,26 @@ const computeGraph = (domain, depth = 2) => {
             let domainList = domain.split('.')
             let tld = domainList[domainList.length - 1]
             if (site && !pushedUrl.has(site.url)) {
-                graphData.nodes.push({
+                let nodeData = {
                     "id": site.url,
-                    "label": site.url,
+                    "label": site.name,
                     "title": site.name,
                     "group": tld
-                })
+                }
+
+                if (pushedUrl.size < 30) {
+                    //  同屏节点少于 30 时，显示站点 icon
+                    nodeData = {
+                        ...nodeData,
+                        'shape': "circularImage",
+                        'image': site.icon,
+                        'brokenImage': '/favicon.ico'
+                    }
+                }
+
+                graphData.nodes.push(nodeData)
                 pushedUrl.add(site.url)
-                site.friends.map(link => {
+                site.friends.forEach(link => {
                     try {
                         let u = new URL(link)
                         addData2Graph(u.hostname, _depth)
@@ -79,6 +109,25 @@ const AppContext = createContext({})
 
 const AppReducer = (state, action) => {
     switch (action.type) {
+        case 'setQ':
+            const { q } = action.payload
+            let blogList = queryBlog(q)
+            if (blogList.length === 1) {
+                let site = blogList[0]
+                return {
+                    ...state,
+                    domain: site.domain,
+                    selectedSite: site
+                }
+            } else {
+                return {
+                    ...state,
+                    q,
+                    blogList,
+                    selectedSite: undefined
+                }
+            }
+
         case ('setDomain'):
             const { domain } = action.payload
             return {
@@ -98,6 +147,7 @@ const AppReducer = (state, action) => {
             return {
                 ...state,
                 domain: (new URL(selectedSite.url)).hostname,
+                q: undefined,
                 selectedSite
             }
         case 'set':

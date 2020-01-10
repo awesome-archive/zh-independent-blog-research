@@ -1,23 +1,15 @@
 import React, { useContext, useState } from 'react';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import InputBase from '@material-ui/core/InputBase';
-import Badge from '@material-ui/core/Badge';
 import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
-import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MailIcon from '@material-ui/icons/Mail';
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import MoreIcon from '@material-ui/icons/MoreVert';
+import { Link } from 'react-router-dom';
 
-import { Divider } from '@material-ui/core';
 import Select from '@material-ui/core/Select';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 
 import { AppContext } from '../Context'
@@ -25,6 +17,10 @@ import { AppContext } from '../Context'
 const useStyles = makeStyles(theme => ({
     grow: {
         flexGrow: 1,
+        position: "fixed",
+        top: 0,
+        width: '100%',
+        zIndex: 10
     },
     menuButton: {
         marginRight: theme.spacing(2),
@@ -88,6 +84,7 @@ export default function PrimarySearchAppBar() {
     const classes = useStyles();
     const { state, dispatch } = useContext(AppContext)
     const [domain, setDomain] = useState(null)
+    console.log(state)
 
     return (
         <div className={classes.grow}>
@@ -102,7 +99,10 @@ export default function PrimarySearchAppBar() {
                         <MenuIcon />
                     </IconButton> */}
                     <Typography className={classes.title} variant="h6" noWrap>
-                        中文独立博客调研
+                        <Link to="/" style={{
+                            textDecoration: 'none',
+                            color: '#fff'
+                        }}>中文独立博客调研</Link>
                     </Typography>
                     <div className={classes.search}>
                         <div className={classes.searchIcon}>
@@ -111,7 +111,7 @@ export default function PrimarySearchAppBar() {
                         <InputBase
                             value={domain}
                             onChange={(e) => { setDomain(e.target.value) }}
-                            placeholder="a.blog.domain"
+                            placeholder="搜索"
                             classes={{
                                 root: classes.inputRoot,
                                 input: classes.inputInput,
@@ -120,9 +120,9 @@ export default function PrimarySearchAppBar() {
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     dispatch({
-                                        type: 'setDomain',
+                                        type: 'setQ',
                                         payload: {
-                                            domain
+                                            q: domain
                                         }
                                     })
                                 }
@@ -153,6 +153,19 @@ export default function PrimarySearchAppBar() {
                             {/* <FormHelperText>关系网深度</FormHelperText> */}
                         </FormControl>
                     </div>
+                    <Link to='report' component={Button} style={{
+                        textDecoration: 'none',
+                        color: '#fff'
+                    }}>
+                        报告
+                    </Link>
+                    <Link to='about' component={Button} style={{
+                        textDecoration: 'none',
+                        color: '#fff'
+                    }}>
+                        关于
+                    </Link>
+
                     <div className={classes.grow} />
                 </Toolbar>
             </AppBar>
